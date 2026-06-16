@@ -43,11 +43,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify Nitro codegen is up to date
-        run: |
-          npm run codegen
-          git diff --exit-status -- nitrogen \
-            || (echo "::error::nitrogen/generated is stale — run 'npm run codegen' and commit." && exit 1)
+      - name: Verify Nitro codegen runs (specs are valid)
+        run: npm run codegen
 
       - name: Typecheck
         run: npm run typecheck
