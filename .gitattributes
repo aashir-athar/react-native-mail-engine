@@ -1,0 +1,17 @@
+# Normalize all text to LF in the repository so a Linux CI checkout matches a
+# Windows author's working tree. Critical for the committed `nitrogen/generated`
+# output: CI regenerates it with LF and compares with `git diff`.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets — never normalize.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.keystore binary
+*.jks binary
+*.tgz binary
