@@ -1,0 +1,59 @@
+name: CI
+
+# Verifies the JS / Nitro-spec / config-plugin layer: codegen is up to date,
+# TypeScript typechecks, the package builds, and the published file set is valid.
+#
+# It does NOT run the native iOS (CocoaPods + MailCore2) or Android (Gradle +
+# JavaMail) compiles: those require the full app toolchain + the engine libraries
+# and are validated on-device (see CONTRIBUTING.md / ZERO-TO-DEPLOY.md).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Verify (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['20', '22']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Nitro codegen is up to date
+        run: |
+          npm run codegen
+          git diff --exit-status -- nitrogen \
+            || (echo "::error::nitrogen/generated is stale — run 'npm run codegen' and commit." && exit 1)
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build (bob + config plugin)
+        run: npm run build
+
+      - name: Validate published file set
+        run: npm pack --dry-run

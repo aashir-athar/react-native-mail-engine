@@ -1,0 +1,100 @@
+buildscript {
+  ext.safeExtGet = { prop, fallback ->
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  }
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    classpath "com.android.tools.build:gradle"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin"
+  }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+
+android {
+  namespace "com.margelo.nitro.mailengine"
+
+  compileSdkVersion safeExtGet("compileSdkVersion", 36)
+  ndkVersion safeExtGet("ndkVersion", "27.1.12297006")
+
+  buildFeatures {
+    prefab true
+    buildConfig true
+  }
+
+  defaultConfig {
+    minSdkVersion safeExtGet("minSdkVersion", 24)
+    targetSdkVersion safeExtGet("targetSdkVersion", 36)
+
+    externalNativeBuild {
+      cmake {
+        cppFlags "-O2", "-frtti", "-fexceptions", "-Wall", "-std=c++20"
+        arguments "-DANDROID_STL=c++_shared"
+        abiFilters(*safeExtGet("reactNativeArchitectures", "armeabi-v7a,arm64-v8a,x86,x86_64").split(","))
+      }
+    }
+  }
+
+  externalNativeBuild {
+    cmake {
+      path "CMakeLists.txt"
+    }
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+
+  kotlinOptions {
+    jvmTarget = "17"
+  }
+
+  // JavaMail (com.sun.mail) ships duplicate META-INF service descriptors.
+  packagingOptions {
+    resources {
+      pickFirsts += [
+        "META-INF/LICENSE.txt",
+        "META-INF/NOTICE.txt",
+        "META-INF/javamail.providers",
+        "META-INF/javamail.default.providers",
+        "META-INF/javamail.charset.map",
+        "META-INF/mailcap",
+        "META-INF/mailcap.default",
+        "META-INF/javamail.address.map",
+      ]
+    }
+  }
+
+  // R8 keep rules consumers need for JavaMail to work in release builds.
+  defaultConfig {
+    consumerProguardFiles "consumer-rules.pro"
+  }
+}
+
+// Adds the Nitrogen-generated Kotlin sources to this module.
+apply from: "../nitrogen/generated/android/MailEngine+autolinking.gradle"
+
+repositories {
+  google()
+  mavenCentral()
+}
+
+dependencies {
+  // React Native (replaced with com.facebook.react:react-android by the RN plugin).
+  implementation "com.facebook.react:react-android"
+  // NitroModules core (HybridObject / Promise / ArrayBuffer) + its C++ prefab.
+  implementation project(":react-native-nitro-modules")
+
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:${safeExtGet('kotlinVersion', '2.0.21')}"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+
+  // The Android-targeted JavaMail port: IMAP + SMTP + MIME + IDLE + XOAUTH2/SASL.
+  implementation "com.sun.mail:android-mail:1.6.7"
+  implementation "com.sun.mail:android-activation:1.6.7"
+}

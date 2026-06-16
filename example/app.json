@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "rn-mail-engine-example",
+    "slug": "rn-mail-engine-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "platforms": ["ios", "android"],
+    "ios": {
+      "bundleIdentifier": "com.aashirathar.rnmailexample",
+      "deploymentTarget": "15.1"
+    },
+    "android": {
+      "package": "com.aashirathar.rnmailexample",
+      "minSdkVersion": 24
+    },
+    "plugins": [
+      "expo-dev-client",
+      "react-native-mail-engine"
+    ]
+  }
+}

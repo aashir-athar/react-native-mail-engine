@@ -1,0 +1,23 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["mailengine"],
+  "ios": {
+    "iosModuleName": "MailEngine"
+  },
+  "android": {
+    "androidNamespace": ["mailengine"],
+    "androidCxxLibName": "MailEngine"
+  },
+  "autolinking": {
+    "MailEngine": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridMailEngine"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridMailEngine"
+      }
+    }
+  }
+}

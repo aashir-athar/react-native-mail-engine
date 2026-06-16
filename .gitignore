@@ -1,0 +1,83 @@
+# ─────────────────────────────────────────────
+# Dependencies
+# ─────────────────────────────────────────────
+node_modules/
+.yarn/cache
+.yarn/install-state.gz
+.pnp.*
+
+# ─────────────────────────────────────────────
+# JS build output (react-native-builder-bob, plugin tsc)
+# ─────────────────────────────────────────────
+lib/
+plugin/build/
+*.tsbuildinfo
+
+# NOTE: nitrogen/generated/ is intentionally committed so the native build works
+# without consumers running codegen. Regenerate with `npm run codegen`.
+
+# ─────────────────────────────────────────────
+# Logs / caches
+# ─────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+hs_err_pid*.log
+
+# ─────────────────────────────────────────────
+# Packing artefacts
+# ─────────────────────────────────────────────
+*.tgz
+
+# ─────────────────────────────────────────────
+# Secrets — NEVER commit
+# ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+keystore.properties
+google-services.json
+GoogleService-Info.plist
+*.pem
+*.p12
+
+# ─────────────────────────────────────────────
+# Editors & OS
+# ─────────────────────────────────────────────
+.vscode/
+.idea/
+.vs/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────────
+# Android
+# ─────────────────────────────────────────────
+android/.gradle/
+android/build/
+android/.cxx/
+*.apk
+*.aab
+local.properties
+
+# ─────────────────────────────────────────────
+# iOS / CocoaPods
+# ─────────────────────────────────────────────
+ios/build/
+ios/Pods/
+*.xcworkspace
+xcuserdata/
+
+# ─────────────────────────────────────────────
+# Example app — regenerable via prebuild
+# ─────────────────────────────────────────────
+example/node_modules/
+example/.expo/
+example/android/
+example/ios/
+example/.gradle/

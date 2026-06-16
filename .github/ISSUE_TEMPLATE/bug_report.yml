@@ -1,0 +1,62 @@
+name: Bug report
+description: Report a problem with react-native-mail-engine
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a report. **Never paste real passwords or OAuth tokens.**
+  - type: checkboxes
+    attributes:
+      label: Preflight
+      options:
+        - label: I'm on the New Architecture (this package does not support the old bridge).
+          required: true
+        - label: I searched existing issues.
+          required: true
+  - type: dropdown
+    attributes:
+      label: Platform
+      options: [Android, iOS, Both]
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: react-native-mail-engine version
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: React Native version
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: react-native-nitro-modules version
+  - type: dropdown
+    attributes:
+      label: Auth method
+      options: [password / app-password, xoauth2, oauthbearer]
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Mail provider + IMAP/SMTP host:port
+      description: e.g. Gmail — imap.gmail.com:993 / smtp.gmail.com:465. Redact anything private.
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Include the failing API call, the `MailError.code`, and the full message.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: Minimal steps or a snippet (with secrets removed).
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs
+      description: Xcode console / `adb logcat` output (secrets removed).
+      render: shell

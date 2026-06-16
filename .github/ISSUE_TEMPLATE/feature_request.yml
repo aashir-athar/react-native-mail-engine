@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest an improvement to react-native-mail-engine
+labels: ["enhancement"]
+body:
+  - type: textarea
+    attributes:
+      label: Problem
+      description: What are you trying to do that the library can't do today?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed solution
+      description: API sketch or behaviour you'd like.
+  - type: dropdown
+    attributes:
+      label: Platforms
+      multiple: true
+      options: [Android, iOS]
+  - type: textarea
+    attributes:
+      label: Alternatives considered

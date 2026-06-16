@@ -1,0 +1,118 @@
+{
+  "name": "react-native-mail-engine",
+  "version": "0.1.0",
+  "description": "A maintained, cross-platform native IMAP + SMTP engine for React Native (Nitro module + Expo config plugin): MIME parsing, IDLE push, attachments, and first-class OAuth2/XOAUTH2 — so you can finally build a real in-app inbox. iOS via MailCore2, Android via Jakarta Mail. New Architecture only.",
+  "main": "lib/commonjs/index.js",
+  "module": "lib/module/index.js",
+  "types": "lib/typescript/commonjs/src/index.d.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/typescript/module/src/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "require": {
+        "types": "./lib/typescript/commonjs/src/index.d.ts",
+        "default": "./lib/commonjs/index.js"
+      }
+    },
+    "./app.plugin.js": "./app.plugin.js"
+  },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "nitrogen",
+    "plugin/build",
+    "app.plugin.js",
+    "react-native-mail-engine.podspec",
+    "react-native.config.js",
+    "nitro.json",
+    "README.md",
+    "LICENSE",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "codegen": "nitrogen",
+    "build": "bob build && npm run build:plugin",
+    "build:plugin": "tsc -p plugin/tsconfig.json",
+    "clean": "del-cli lib plugin/build nitrogen/generated",
+    "prepare": "bob build && npm run build:plugin"
+  },
+  "keywords": [
+    "react-native",
+    "nitro",
+    "nitro-modules",
+    "new-architecture",
+    "turbomodule",
+    "imap",
+    "smtp",
+    "email",
+    "mail",
+    "mailbox",
+    "inbox",
+    "mime",
+    "idle",
+    "xoauth2",
+    "oauth2",
+    "mailcore2",
+    "jakarta-mail",
+    "attachments",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aashir-athar/react-native-mail-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aashir-athar/react-native-mail-engine/issues"
+  },
+  "author": "aashir-athar (https://github.com/aashir-athar)",
+  "license": "MIT",
+  "homepage": "https://github.com/aashir-athar/react-native-mail-engine#readme",
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-nitro-modules": ">=0.29.0"
+  },
+  "devDependencies": {
+    "@expo/config-plugins": "^10.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "~19.2.0",
+    "del-cli": "^6.0.0",
+    "nitrogen": "0.35.9",
+    "react": "19.2.7",
+    "react-native": "0.86.0",
+    "react-native-builder-bob": "^0.43.0",
+    "react-native-nitro-modules": "0.35.9",
+    "typescript": "^5.9.0"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}

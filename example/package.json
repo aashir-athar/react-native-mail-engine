@@ -1,0 +1,24 @@
+{
+  "name": "react-native-mail-engine-example",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "expo": "^56.0.12",
+    "expo-dev-client": "~6.0.0",
+    "react": "19.2.7",
+    "react-native": "0.86.0",
+    "react-native-mail-engine": "file:..",
+    "react-native-nitro-modules": "0.35.9"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@types/react": "~19.2.0",
+    "typescript": "~5.9.0"
+  }
+}
