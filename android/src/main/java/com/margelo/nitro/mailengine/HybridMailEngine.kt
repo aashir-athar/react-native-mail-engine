@@ -38,7 +38,9 @@ class HybridMailEngine : HybridMailEngineSpec() {
           MailBridge.secretFor(config.auth)
         )
       } catch (error: Throwable) {
-        executor.shutdownNow()
+        // Graceful shutdown: we're running on this executor's own thread, so
+        // shutdownNow() would interrupt ourselves. shutdown() lets this task finish.
+        executor.shutdown()
         throw error
       }
       HybridMailAccount(

@@ -7,6 +7,40 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-17
+
+Correctness fixes from a multi-agent adversarial review (iOS / Android / contract).
+No public API changes.
+
+### Fixed
+
+- **Android: post-disconnect crash.** Using an account/mailbox after `disconnect()`
+  threw `RejectedExecutionException` synchronously across the JNI boundary; it now
+  rejects the promise with `ERR_NOT_CONNECTED`.
+- **Android: `fetchHeaders` no longer fetches the entire mailbox** — `sinceUid` /
+  `uidRange` are pushed into a server-side UID range before fetching envelopes.
+- **Android: `MailboxInfo.flags`** now populated (`\HasChildren` / `\Noselect`);
+  `connect` failure uses graceful `shutdown()` instead of `shutdownNow()`;
+  `AddressException` maps to `ERR_PARSE`; header/message `hasAttachments` unified
+  so the two views agree; removed a redundant attachment byte-copy.
+- **iOS: `disconnect()` now actually closes the connection** (the disconnect
+  operation was created but never started — a connection leak).
+- **iOS: `readOnly` mailboxes are enforced** — mutating ops (flags / move / delete /
+  mark-seen) reject with `ERR_UNSUPPORTED`.
+- **iOS: `search` now honours `seen` / `flagged` / `answered`** criteria; the
+  `\Forwarded` flag is mapped; the IDLE operation pointer is synchronized across
+  threads.
+- **JS: error-code inference** orders SMTP before connect.
+- **Build hygiene:** dropped the unversioned Android `buildscript` classpath (RN
+  apps provide it); removed dead `cpp/` entries from `files` + podspec; bumped CI
+  Actions to `@v6` (Node 24).
+
+### Known limitations (documented, not yet addressed)
+
+- IDLE holds the account's single connection — stop IDLE before other commands.
+- `moveMessages` / `deleteMessages(expunge: true)` expunge the folder's entire
+  `\Deleted` set (IMAP `UID EXPUNGE` is not used in v1).
+
 ## [0.1.0] - 2026-06-17
 
 Initial public release: a maintained, cross-platform native **IMAP + SMTP engine** for

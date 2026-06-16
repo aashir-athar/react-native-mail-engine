@@ -125,6 +125,7 @@ static MCOMessageFlag RNFlagMask(NSArray<NSString *> *names) {
     else if ([n containsString:@"deleted"]) mask |= MCOMessageFlagDeleted;
     else if ([n containsString:@"answered"]) mask |= MCOMessageFlagAnswered;
     else if ([n containsString:@"draft"]) mask |= MCOMessageFlagDraft;
+    else if ([n containsString:@"forwarded"]) mask |= MCOMessageFlagForwarded;
   }
   return mask;
 }
@@ -559,6 +560,9 @@ static MCOIndexSet *RNIndexSetFromUids(NSArray<NSNumber *> *uids) {
   if (c.body.length) [terms addObject:[MCOIMAPSearchExpression searchBody:c.body]];
   if (c.sinceDateMs) [terms addObject:[MCOIMAPSearchExpression searchSinceReceivedDate:[NSDate dateWithTimeIntervalSince1970:c.sinceDateMs.doubleValue / 1000.0]]];
   if (c.beforeDateMs) [terms addObject:[MCOIMAPSearchExpression searchBeforeReceivedDate:[NSDate dateWithTimeIntervalSince1970:c.beforeDateMs.doubleValue / 1000.0]]];
+  if (c.seen != nil) [terms addObject:(c.seen.boolValue ? [MCOIMAPSearchExpression searchRead] : [MCOIMAPSearchExpression searchUnread])];
+  if (c.flagged != nil) [terms addObject:(c.flagged.boolValue ? [MCOIMAPSearchExpression searchFlagged] : [MCOIMAPSearchExpression searchUnflagged])];
+  if (c.answered != nil) [terms addObject:(c.answered.boolValue ? [MCOIMAPSearchExpression searchAnswered] : [MCOIMAPSearchExpression searchUnanswered])];
 
   MCOIMAPSearchExpression *expr = nil;
   if (terms.count == 0) {
@@ -668,13 +672,15 @@ static MCOIndexSet *RNIndexSetFromUids(NSArray<NSNumber *> *uids) {
   __block NSError *opError = nil;
   dispatch_semaphore_t sem = dispatch_semaphore_create(0);
   MCOIMAPIdleOperation *op = [_imap idleOperation:folderPath lastKnownUID:lastKnownUid];
-  _idleOp = op;
+  // _idleOp is read from another thread in -interruptIdle; guard the pointer.
+  // The lock is NOT held across the semaphore wait, so the interrupt can proceed.
+  @synchronized(self) { _idleOp = op; }
   [op start:^(NSError *err) {
     opError = err;
     dispatch_semaphore_signal(sem);
   }];
   dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-  _idleOp = nil;
+  @synchronized(self) { _idleOp = nil; }
   if (opError != nil) {
     if (error) *error = RNMapMailCoreError(opError, @"ERR_IMAP");
     return NO;
@@ -693,12 +699,14 @@ static MCOIndexSet *RNIndexSetFromUids(NSArray<NSNumber *> *uids) {
 }
 
 - (void)interruptIdle {
-  [_idleOp interruptIdle];
+  @synchronized(self) { [_idleOp interruptIdle]; }
 }
 
 - (void)disconnect {
   [self interruptIdle];
-  [_imap disconnectOperation];
+  // The disconnect operation does nothing until started — drive it to completion
+  // so the IMAP socket is actually closed (otherwise the connection leaks).
+  [self runVoidOp:[_imap disconnectOperation] fallback:@"ERR_IMAP" error:nil];
   _smtp = nil;
 }
 

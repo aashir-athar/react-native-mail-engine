@@ -55,7 +55,14 @@ class HybridMailMailbox(
 
   override fun fetchHeaders(options: MailFetchHeadersOptions): Promise<Array<MailHeaderStruct>> =
     MailBridge.run(executor) {
-      val messages = folder.getMessagesByUID(1, UIDFolder.LASTUID)
+      // Narrow the fetch to a server-side UID range so a large mailbox doesn't
+      // pull every envelope just to return the newest few.
+      val lo = maxOf(
+        options.sinceUid?.let { it.toLong() + 1 } ?: 1L,
+        options.uidRangeStart?.toLong() ?: 1L
+      )
+      val hi = options.uidRangeEnd?.toLong() ?: UIDFolder.LASTUID
+      val messages = folder.getMessagesByUID(lo, hi)
       val profile = FetchProfile().apply {
         add(FetchProfile.Item.ENVELOPE)
         add(FetchProfile.Item.FLAGS)

@@ -13,10 +13,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/aashir-athar/react-native-mail-engine.git", :tag => "#{s.version}" }
 
   # Our Swift HybridObjects + the Obj-C(++) MailCore2 facade.
-  s.source_files = [
-    "ios/**/*.{swift,h,m,mm}",
-    "cpp/**/*.{hpp,cpp}",
-  ]
+  s.source_files = "ios/**/*.{swift,h,m,mm}"
   # Expose the Obj-C facade header so this pod's Swift can call it (the .mm — the
   # only translation unit that touches MailCore2's C++ headers — stays internal).
   s.public_header_files = "ios/MailCoreObjCBridge.h"

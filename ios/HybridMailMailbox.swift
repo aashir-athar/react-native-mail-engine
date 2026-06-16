@@ -14,6 +14,7 @@ final class HybridMailMailbox: HybridMailMailboxSpec {
   private let session: RNMailSession
   private let queue: DispatchQueue
   private let folderPath: String
+  private let readOnly: Bool
 
   private let existsValue: Double
   private let unseenValue: Double
@@ -23,15 +24,23 @@ final class HybridMailMailbox: HybridMailMailboxSpec {
   private var idling = false
   private var idleThread: Thread?
 
-  init(session: RNMailSession, queue: DispatchQueue, path: String, status: RNFolderStatus) {
+  init(session: RNMailSession, queue: DispatchQueue, path: String, status: RNFolderStatus, readOnly: Bool) {
     self.session = session
     self.queue = queue
     self.folderPath = path
+    self.readOnly = readOnly
     self.existsValue = Double(status.messageCount)
     self.unseenValue = Double(status.unseenCount)
     self.uidNextValue = Double(status.uidNext)
     self.uidValidityValue = Double(status.uidValidity)
     super.init()
+  }
+
+  /// Throw if a mutating op is attempted on a read-only (EXAMINE-intent) mailbox.
+  private func ensureWritable() throws {
+    if readOnly {
+      throw MailEngineError(code: "ERR_UNSUPPORTED", message: "Mailbox was opened read-only")
+    }
   }
 
   var path: String { folderPath }
@@ -86,7 +95,7 @@ final class HybridMailMailbox: HybridMailMailboxSpec {
     let folderPath = self.folderPath
     let include = options.includeAttachments ?? true
     let maxBytes = Int64(options.maxAttachmentBytes ?? 0)
-    let markSeen = options.markSeen ?? false
+    let markSeen = (options.markSeen ?? false) && !readOnly
     let messageUid = UInt32(uid)
 
     return runMail(on: queue) {
@@ -130,14 +139,14 @@ final class HybridMailMailbox: HybridMailMailboxSpec {
     let session = self.session
     let folderPath = self.folderPath
     let nums = uidsToNumbers(uids)
-    return runMail(on: queue) { try session.storeFlags(inFolder: folderPath, uids: nums, flags: flags, mode: 0) }
+    return runMail(on: queue) { try self.ensureWritable(); try session.storeFlags(inFolder: folderPath, uids: nums, flags: flags, mode: 0) }
   }
 
   func removeFlags(uids: [Double], flags: [String]) throws -> Promise<Void> {
     let session = self.session
     let folderPath = self.folderPath
     let nums = uidsToNumbers(uids)
-    return runMail(on: queue) { try session.storeFlags(inFolder: folderPath, uids: nums, flags: flags, mode: 1) }
+    return runMail(on: queue) { try self.ensureWritable(); try session.storeFlags(inFolder: folderPath, uids: nums, flags: flags, mode: 1) }
   }
 
   func markSeen(uids: [Double], seen: Bool) throws -> Promise<Void> {
@@ -145,6 +154,7 @@ final class HybridMailMailbox: HybridMailMailboxSpec {
     let folderPath = self.folderPath
     let nums = uidsToNumbers(uids)
     return runMail(on: queue) {
+      try self.ensureWritable()
       try session.storeFlags(inFolder: folderPath, uids: nums, flags: ["\\Seen"], mode: seen ? 0 : 1)
     }
   }
@@ -153,7 +163,7 @@ final class HybridMailMailbox: HybridMailMailboxSpec {
     let session = self.session
     let folderPath = self.folderPath
     let nums = uidsToNumbers(uids)
-    return runMail(on: queue) { try session.moveMessages(inFolder: folderPath, uids: nums, destination: destinationPath) }
+    return runMail(on: queue) { try self.ensureWritable(); try session.moveMessages(inFolder: folderPath, uids: nums, destination: destinationPath) }
   }
 
   func copyMessages(uids: [Double], destinationPath: String) throws -> Promise<Void> {
@@ -167,7 +177,7 @@ final class HybridMailMailbox: HybridMailMailboxSpec {
     let session = self.session
     let folderPath = self.folderPath
     let nums = uidsToNumbers(uids)
-    return runMail(on: queue) { try session.deleteMessages(inFolder: folderPath, uids: nums, expunge: expunge) }
+    return runMail(on: queue) { try self.ensureWritable(); try session.deleteMessages(inFolder: folderPath, uids: nums, expunge: expunge) }
   }
 
   // MARK: - IDLE

@@ -1,15 +1,9 @@
-buildscript {
-  ext.safeExtGet = { prop, fallback ->
-    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
-  }
-  repositories {
-    google()
-    mavenCentral()
-  }
-  dependencies {
-    classpath "com.android.tools.build:gradle"
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin"
-  }
+// The Android Gradle plugin, Kotlin plugin, and com.facebook.react plugin are
+// provided by the consuming React Native app's root build.gradle classpath
+// (standard for autolinked RN libraries) — so this module declares no buildscript
+// classpath of its own, which would otherwise need brittle hard-pinned versions.
+def safeExtGet(prop, fallback) {
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
 apply plugin: "com.android.library"

@@ -151,7 +151,9 @@ function wrapError(error: unknown): MailError {
   let message = e?.message ?? 'Unknown mail engine error';
 
   // Native (Swift/Kotlin) rejects with a message prefixed `ERR_CODE: ...` so the
-  // stable code survives Nitro's error bridging.
+  // stable code survives Nitro's error bridging. The `.code` branch is
+  // forward-compat: today Nitro does not attach `.code` to a bridged rejection,
+  // so the message-prefix path below is the one that actually fires.
   if (typeof e?.code === 'string' && e.code.startsWith('ERR_')) {
     return new MailError(e.code, message);
   }
@@ -168,8 +170,10 @@ function inferCode(message: string): string {
   if (m.includes('auth') || m.includes('credential') || m.includes('xoauth')) return MailErrorCode.AUTH;
   if (m.includes('timeout') || m.includes('timed out')) return MailErrorCode.TIMEOUT;
   if (m.includes('tls') || m.includes('ssl') || m.includes('certificate')) return MailErrorCode.TLS;
-  if (m.includes('connect')) return MailErrorCode.CONNECT;
+  // Check SMTP before the broader `connect` so "could not connect to smtp host"
+  // is classified as SMTP, not CONNECT.
   if (m.includes('smtp')) return MailErrorCode.SMTP;
+  if (m.includes('connect')) return MailErrorCode.CONNECT;
   return MailErrorCode.IMAP;
 }
 
@@ -279,6 +283,11 @@ export class Mailbox {
   /**
    * Start IMAP IDLE (real-time push). Returns an unsubscribe function; call it to
    * stop IDLE and return the connection to command mode.
+   *
+   * IDLE holds the account's single connection. **Stop IDLE (call the returned
+   * function) before issuing other commands** on this account — running a fetch /
+   * search / flag op while IDLE is active conflicts on the same connection.
+   * Rejects via `onError` with `ERR_UNSUPPORTED` if the server lacks IDLE.
    */
   idle(
     onMail: (event: NewMailEvent) => void,

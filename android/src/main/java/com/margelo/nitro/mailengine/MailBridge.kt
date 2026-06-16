@@ -7,9 +7,9 @@ import java.io.ByteArrayOutputStream
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.nio.ByteBuffer
 import java.util.Properties
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.RejectedExecutionException
 import javax.activation.DataHandler
 import javax.mail.Address
 import javax.mail.AuthenticationFailedException
@@ -42,6 +42,7 @@ internal object MailBridge {
       error is SocketTimeoutException -> "ERR_TIMEOUT"
       error is SSLException -> "ERR_TLS"
       error is ConnectException || error is UnknownHostException -> "ERR_CONNECT"
+      error is javax.mail.internet.AddressException -> "ERR_PARSE"
       error is FolderNotFoundException -> "ERR_MAILBOX"
       error is MessagingException -> "ERR_IMAP"
       else -> "ERR_IMAP"
@@ -49,15 +50,23 @@ internal object MailBridge {
     return MailCodedException(code, error.message ?: error.javaClass.simpleName)
   }
 
-  /** Run blocking JavaMail work on the account's single executor thread. */
+  /**
+   * Run blocking JavaMail work on the account's single executor thread. If the
+   * executor is already shut down (the account was disconnected), the work is
+   * rejected — never thrown synchronously across the JNI boundary.
+   */
   fun <T> run(executor: ExecutorService, block: () -> T): Promise<T> {
     val promise = Promise<T>()
-    executor.execute {
-      try {
-        promise.resolve(block())
-      } catch (e: Throwable) {
-        promise.reject(coded(e))
+    try {
+      executor.execute {
+        try {
+          promise.resolve(block())
+        } catch (e: Throwable) {
+          promise.reject(coded(e))
+        }
       }
+    } catch (e: RejectedExecutionException) {
+      promise.reject(MailCodedException("ERR_NOT_CONNECTED", "This account has been disconnected"))
     }
     return promise
   }
@@ -193,17 +202,20 @@ internal object MailBridge {
     )
   }
 
-  private fun hasAttachments(message: Part): Boolean {
-    val content = runCatching { message.content }.getOrNull() ?: return false
+  /** A single definition of "has attachments" shared by the header view and the
+   *  full-message view, so they never disagree: any part with a filename, or an
+   *  explicit attachment disposition. */
+  private fun hasAttachments(part: Part): Boolean {
+    val content = runCatching { part.content }.getOrNull()
     if (content is Multipart) {
       for (i in 0 until content.count) {
-        val part = content.getBodyPart(i)
-        val disp = part.disposition
-        if (Part.ATTACHMENT.equationallyEquals(disp)) return true
-        if (part.content is Multipart && hasAttachments(part)) return true
+        if (hasAttachments(content.getBodyPart(i))) return true
       }
+      return false
     }
-    return false
+    val disposition = runCatching { part.disposition }.getOrNull()
+    val filename = runCatching { part.fileName }.getOrNull()
+    return Part.ATTACHMENT.equationallyEquals(disposition) || !filename.isNullOrEmpty()
   }
 
   private fun String?.equationallyEquals(other: String?): Boolean =
@@ -216,7 +228,9 @@ internal object MailBridge {
     val attachments = ArrayList<MailAttachmentStruct>()
     walkPart(message, includeAttachments, maxBytes, texts, htmls, attachments, IntArray(1))
     return MailMessageStruct(
-      header = header.copy(hasAttachments = attachments.any { !it.isInline }),
+      // `header.hasAttachments` already uses the shared `hasAttachments` walk, so
+      // the header view and this parsed view always agree.
+      header = header,
       textBody = texts.toString().ifEmpty { null },
       htmlBody = htmls.toString().ifEmpty { null },
       attachments = attachments.toTypedArray()
@@ -343,10 +357,5 @@ internal object MailBridge {
 
   // ── ArrayBuffer ───────────────────────────────────────────────────────────
 
-  fun toArrayBuffer(bytes: ByteArray): ArrayBuffer {
-    val buffer = ByteBuffer.allocateDirect(bytes.size)
-    buffer.put(bytes)
-    buffer.rewind()
-    return ArrayBuffer.copy(buffer)
-  }
+  fun toArrayBuffer(bytes: ByteArray): ArrayBuffer = ArrayBuffer.copy(bytes)
 }

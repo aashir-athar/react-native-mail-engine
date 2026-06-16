@@ -24,12 +24,20 @@ class HybridMailAccount(
 
   override fun listMailboxes(): Promise<Array<MailMailboxInfo>> = MailBridge.run(executor) {
     store.defaultFolder.list("*").map { folder ->
+      val type = runCatching { folder.type }.getOrDefault(Folder.HOLDS_MESSAGES)
+      val selectable = (type and Folder.HOLDS_MESSAGES) != 0
+      // JavaMail doesn't surface raw IMAP LIST attributes (\Sent etc.) portably,
+      // so derive the structural flags consumers most often branch on.
+      val flags = buildList {
+        if ((type and Folder.HOLDS_FOLDERS) != 0) add("\\HasChildren")
+        if (!selectable) add("\\Noselect")
+      }.toTypedArray()
       MailMailboxInfo(
         name = folder.name,
         path = folder.fullName,
         delimiter = runCatching { folder.separator.toString() }.getOrDefault("/"),
-        flags = emptyArray(),
-        selectable = (folder.type and Folder.HOLDS_MESSAGES) != 0,
+        flags = flags,
+        selectable = selectable,
         exists = null,
         unseen = null
       )

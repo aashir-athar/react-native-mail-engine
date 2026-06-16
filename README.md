@@ -249,6 +249,11 @@ This package scopes to **"a real, native, maintained IMAP/SMTP engine"** — not
 - **No offline sync / threading database.** This is an engine, not a store. Persisting + threading messages is left to your app (or a future paid add-on).
 - **No Exchange/EWS, no MDM/S-MIME.** IMAP/SMTP only.
 
+Two runtime behaviours to know:
+
+- **IDLE holds the connection.** An account has one IMAP connection; while `idle()` is active it's dedicated to push. **Stop IDLE before issuing other commands** (fetch/search/flags) on that account.
+- **`moveMessages` / `deleteMessages(expunge: true)` expunge the folder's whole `\Deleted` set** (v1 doesn't use IMAP `UID EXPUNGE`). Don't leave unrelated messages flagged `\Deleted` when calling these.
+
 If you need any of the above, open a discussion — some are on the roadmap.
 
 ---

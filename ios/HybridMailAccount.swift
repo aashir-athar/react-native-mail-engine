@@ -37,7 +37,7 @@ final class HybridMailAccount: HybridMailAccountSpec {
     let queue = self.queue
     return runMail(on: queue) { () -> (any HybridMailMailboxSpec) in
       let status = try session.selectFolderPath(path)
-      return HybridMailMailbox(session: session, queue: queue, path: path, status: status)
+      return HybridMailMailbox(session: session, queue: queue, path: path, status: status, readOnly: readOnly)
     }
   }
 

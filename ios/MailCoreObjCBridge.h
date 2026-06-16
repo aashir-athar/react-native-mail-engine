@@ -15,10 +15,12 @@
 //
 //  This header exposes ONLY plain Foundation types (NSString, NSData, NSNumber,
 //  NSArray, NSDictionary, blocks) and opaque object handles. It contains no C++
-//  whatsoever, so it is safe to surface to Swift through the bridging header
-//  (`react-native-mail-engine-Bridging-Header.h`). The implementation lives in
-//  `MailCoreObjCBridge.mm`, which IS compiled as Objective-C++ and is the only
-//  place that talks to MailCore2 directly.
+//  whatsoever, so it is safe to surface to this pod's Swift code: the podspec
+//  declares it in `public_header_files`, so it lands in the pod's generated
+//  module umbrella and same-target Swift can use these classes directly (no
+//  bridging header — bridging headers aren't usable for a `DEFINES_MODULE` pod).
+//  The implementation lives in `MailCoreObjCBridge.mm`, which IS compiled as
+//  Objective-C++ and is the only place that talks to MailCore2 directly.
 //
 //  All blocking IMAP/SMTP work is performed inside these methods. The Swift layer
 //  wraps each call in a Nitro `Promise.parallel(...)` so the JS thread never blocks.
@@ -150,8 +152,9 @@ extern NSString *const RNMailEngineErrorCodeKey;
 /// operations are run to completion synchronously inside the bridge.
 @interface RNMailSession : NSObject
 
-/// Build + validate a session. Runs an IMAP login/check; if `smtpHost` is non-nil
-/// it also validates SMTP. Returns nil and populates `error` on failure.
+/// Build the session and validate IMAP auth (runs a login/check operation).
+/// SMTP, when configured, is validated lazily on the first `sendMessage:`.
+/// Returns nil and populates `error` on IMAP connect/auth failure.
 /// `securityImap`/`securitySmtp`: 0 = plain, 1 = starttls, 2 = tls(implicit SSL).
 /// `authType`: 0 = password, 1 = xoauth2, 2 = oauthbearer (sasl XOAUTH2/OAUTHBEARER).
 + (nullable instancetype)connectWithImapHost:(NSString *)imapHost
