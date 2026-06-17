@@ -1,0 +1,83 @@
+name: Android Build
+
+# Compiles the module's Android Kotlin in a real consuming app so a Kotlin /
+# Gradle / Play-Services error can never reach npm again. The fast `ci.yml`
+# checks the JS/TS half; THIS job is the native half.
+#
+# Strategy: install the package into its example app as a real copy
+# (`--install-links`), `expo prebuild` the Android project, wire the Nitro module
+# in as a Gradle subproject (Expo's RN autolinking does not pick up a bare-RN
+# Nitro module here), then run `compileReleaseKotlin` against Kotlin 2.1 (K2).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'nitrogen/**'
+      - 'example/**'
+      - 'package.json'
+      - '.github/workflows/android.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'nitrogen/**'
+      - 'example/**'
+      - 'package.json'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Compile Android Kotlin (K2)
+    runs-on: ubuntu-latest
+    env:
+      MODULE: react-native-mail-engine
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install NDK + CMake
+        run: sdkmanager "ndk;27.1.12297006" "cmake;3.22.1"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install package deps
+        run: npm ci
+
+      - name: Build JS + config plugin
+        run: npm run build
+
+      - name: Prepare example app
+        working-directory: example
+        run: |
+          npm install --install-links --legacy-peer-deps --no-audit --no-fund
+          npx expo prebuild -p android --no-install
+          {
+            echo ""
+            echo "// CI: wire the Nitro module in as a Gradle subproject."
+            echo "include ':${MODULE}'"
+            echo "project(':${MODULE}').projectDir = new File(rootProject.projectDir, '../node_modules/${MODULE}/android')"
+          } >> android/settings.gradle
+
+      - name: Compile module Kotlin (compileReleaseKotlin)
+        working-directory: example/android
+        run: ./gradlew ":${MODULE}:compileReleaseKotlin" --console=plain --no-daemon --stacktrace
