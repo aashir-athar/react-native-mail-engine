@@ -1,6 +1,6 @@
 {
   "name": "react-native-mail-engine",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A maintained, cross-platform native IMAP + SMTP engine for React Native (Nitro module + Expo config plugin): MIME parsing, IDLE push, attachments, and first-class OAuth2/XOAUTH2 — so you can finally build a real in-app inbox. iOS via MailCore2, Android via Jakarta Mail. New Architecture only.",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",

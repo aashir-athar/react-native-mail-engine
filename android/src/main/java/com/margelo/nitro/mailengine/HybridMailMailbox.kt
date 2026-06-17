@@ -125,7 +125,8 @@ class HybridMailMailbox(
   // MARK: - Flags / move / delete
 
   private fun messagesByUids(uids: DoubleArray): Array<Message> =
-    uids.mapNotNull { folder.getMessageByUID(it.toLong()) }.toTypedArray()
+    // DoubleArray has no `mapNotNull` (primitive arrays only get `map`); go via a List.
+    uids.map { it.toLong() }.mapNotNull { folder.getMessageByUID(it) }.toTypedArray()
 
   override fun addFlags(uids: DoubleArray, flags: Array<String>): Promise<Unit> = MailBridge.run(executor) {
     val messages = messagesByUids(uids)

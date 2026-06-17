@@ -335,7 +335,8 @@ internal object MailBridge {
         part.setContent(alternative)
       }
       html != null -> part.setContent(html, "text/html; charset=utf-8")
-      else -> part.setText(text ?: "", "utf-8")
+      // `Part.setText` takes only one arg; use `setContent` to keep the charset.
+      else -> part.setContent(text ?: "", "text/plain; charset=utf-8")
     }
   }
 

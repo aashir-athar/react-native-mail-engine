@@ -7,6 +7,22 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-17
+
+Android build fix — the module now **compiles cleanly** under Kotlin 2.1.20 (K2) /
+Gradle 9, verified locally with `compileReleaseKotlin`. No public API or behavior
+changes.
+
+### Fixed
+
+- **`HybridMailMailbox.messagesByUids`: `DoubleArray` has no `mapNotNull`.**
+  Primitive arrays only get `map`/`mapIndexed`, so the call was unresolved under K2.
+  It now maps to a `List<Long>` first, then `mapNotNull`.
+- **`MailBridge.setBody`: `Part.setText` takes only one argument.** The plain-text
+  branch called `setText(text, "utf-8")`, but the parameter is typed as the base
+  `Part` interface; it now uses `setContent(text, "text/plain; charset=utf-8")`
+  (same charset, available on `Part`).
+
 ## [0.1.1] - 2026-06-17
 
 Correctness fixes from a multi-agent adversarial review (iOS / Android / contract).
