@@ -339,5 +339,4 @@ Before requesting review, confirm:
 ## Reporting security issues
 
 Please **do not** open a public issue for vulnerabilities. See
-[`SECURITY.md`](./SECURITY.md) for private reporting via GitHub Security Advisories and
-`subscriptions@hybriddot.com`.
+[`SECURITY.md`](./SECURITY.md) for private reporting via GitHub Security Advisories.

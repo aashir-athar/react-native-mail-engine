@@ -20,15 +20,11 @@ Once `1.0.0` ships, this table will be updated to cover the most recent minor li
 **Please do not report security issues in public GitHub issues, discussions, or pull
 requests.** Public disclosure before a fix is available puts users' mailboxes at risk.
 
-Report privately through either channel:
-
-1. **GitHub Security Advisories (preferred).** Open a private report via
-   **Security → Report a vulnerability** on the repository:
-   <https://github.com/aashir-athar/react-native-mail-engine/security/advisories/new>.
-   This keeps the report confidential and lets us collaborate on a fix and a coordinated
-   release.
-2. **Email.** Send details to **subscriptions@hybriddot.com**. If possible, encrypt
-   sensitive details or ask for a secure channel before sharing exploit specifics.
+Report privately through **GitHub Security Advisories**: open a private report via
+**Security → Report a vulnerability** on the repository:
+<https://github.com/aashir-athar/react-native-mail-engine/security/advisories/new>.
+This keeps the report confidential and lets us collaborate on a fix and a coordinated
+release.
 
 Please include:
 
