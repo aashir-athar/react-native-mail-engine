@@ -85,7 +85,7 @@
   },
   "devDependencies": {
     "@expo/config-plugins": "^56.0.9",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "@types/react": "~19.2.0",
     "del-cli": "^7.0.0",
     "nitrogen": "0.35.9",
