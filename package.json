@@ -84,16 +84,16 @@
     "react-native-nitro-modules": ">=0.29.0"
   },
   "devDependencies": {
-    "@expo/config-plugins": "^56.0.9",
-    "@types/node": "^25.9.3",
-    "@types/react": "~19.2.0",
+    "@expo/config-plugins": "^57.0.6",
+    "@types/node": "^26.1.2",
+    "@types/react": "~19.2.18",
     "del-cli": "^7.0.0",
-    "nitrogen": "0.35.9",
-    "react": "19.2.7",
-    "react-native": "0.86.0",
+    "nitrogen": "0.36.4",
+    "react": "19.2.8",
+    "react-native": "0.86.2",
     "react-native-builder-bob": "^0.43.0",
-    "react-native-nitro-modules": "0.35.9",
-    "typescript": "^6.0.3"
+    "react-native-nitro-modules": "0.36.4",
+    "typescript": "^7.0.2"
   },
   "react-native-builder-bob": {
     "source": "src",
